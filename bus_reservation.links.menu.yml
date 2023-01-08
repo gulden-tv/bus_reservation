@@ -1,0 +1,6 @@
+bus.admin:
+  title: 'Bus reservation module settings'
+  description: 'Create buses reservation'
+  parent: system.admin_config_development
+  route_name: bus.settings
+  weight: 100

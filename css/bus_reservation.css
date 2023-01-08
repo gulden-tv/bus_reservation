@@ -1,0 +1,8 @@
+.bus-reservation-form .form-item { display: inline-block; }
+.bus-reservation-form .fieldset { width: 145px; }
+.bus-reservation-form .fieldset__label.is-disabled { color: white; }
+.bus-reservation-form input[type=checkbox]:checked + label:after {
+    content: '\0076';
+    font-family: 'Font Awesome 6 Free';
+}
+.bus-reservation-form *:disabled { opacity: 0.5; }

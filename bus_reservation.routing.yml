@@ -1,0 +1,17 @@
+bus.settings:
+  path: '/admin/config/bus_reservation/settings'
+  defaults:
+    _form: '\Drupal\bus_reservation\Form\AdminSettingsForm'
+    _title: 'Bus reservation setup'
+  requirements:
+    _permission: 'administer site configuration'
+
+bus.busReservation:
+  path: '/bus-reservation'
+  defaults:
+    _form: '\Drupal\bus_reservation\Form\ReservationForm'
+    _title: 'Бронирование автобуса'
+  requirements:
+    _permission: 'access content'
+    _role: 'authenticated'
+    _access: 'TRUE'

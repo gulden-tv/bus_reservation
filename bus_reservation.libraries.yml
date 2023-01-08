@@ -1,0 +1,8 @@
+bus-form-styling:
+  version: 1.x
+  css:
+    layout:
+      css/bus_reservation.css: {}
+      fontawesome/css/fontawesome.css: {}
+      fontawesome/css/solid.css: {}
+      fontawesome/css/regular.css: {}

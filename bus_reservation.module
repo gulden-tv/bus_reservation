@@ -1,0 +1,29 @@
+<?php
+use Drupal\Core\Mail\MailManagerInterface;
+use Drupal\Component\Utility\SafeMarkup;
+use Drupal\Component\Utility\Html;
+
+/**
+* Implements hook_theme().
+*/
+function bus_reservation_theme($existing, $type, $theme, $path) {
+  return [
+  'bus_reservation_form' => [ 'render element' => 'form' ]
+  ];
+}
+
+/**
+ * Implements hook_mail().
+ */
+function bus_reservation_mail($key, &$message, $params) {
+  $options = array(
+    'langcode' => $message['langcode'],
+  );
+  switch ($key) {
+    case 'bus_reservation_notification':
+      $message['from'] = \Drupal::config('system.site')->get('mail');
+      $message['subject'] = t('Your mail subject Here: @title', array('@title' => $params['title']), $options);
+      $message['body'][] = Html::escape($params['message']);
+      break;
+  }
+}
