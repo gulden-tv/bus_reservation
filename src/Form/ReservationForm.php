@@ -31,7 +31,7 @@ class ReservationForm extends FormBase {
           '#type' => 'checkboxes',
           '#title' => t(date("l", strtotime($day))) . " " . $day,
           '#options' => $value['buses'],
-          '#disabled' => ($day == date("Y-m-d") ? TRUE : FALSE) // disable current day
+          '#disabled' => ($this->isReservationDisable($day) ? TRUE : FALSE) // disable current day
         );
         foreach ($value['buses'] as $time => $b) {
           if (isset($reserved_buses[$day][$time])) {
@@ -45,10 +45,12 @@ class ReservationForm extends FormBase {
             if ($reserved_buses[$day][$time]['capacity'] >= $min_capacity)
               $progress .= '<i class="fa-solid fa-check"></i>';
             $form[$day][$time] = ['#description' => $progress];
+
             if ($reserved_buses[$day][$time]['disable'] == 1) { // current user already make reservation
-              $form[$day]['#disabled'] = TRUE;
+             // $form[$day]['#disabled'] = TRUE;
               $form[$day]['#default_value'][] = $time;
             }
+
           } else {
             $progress = "";
             for ($i = 0; $i < $min_capacity; $i++) {
@@ -106,7 +108,7 @@ class ReservationForm extends FormBase {
       $d = strtotime($i . " days");
       $r[date('Y-m-d',$d)]['date'] = date("Y-m-d", $d);
       foreach ($buses as $b)
-        $r[date('Y-m-d',$d)]['buses'][date("H:i", $b['departure'])] = date("H:i", $b['departure']);
+        $r[date('Y-m-d',$d)]['buses'][date("H:i", $b['departure'])] = $b['name'];
     }
     return $r;
   }
@@ -165,6 +167,13 @@ class ReservationForm extends FormBase {
     // \Drupal::messenger()->addMessage($message);
     \Drupal::logger('mail-log')->notice($message);
     return $msg;
+  }
+  function isReservationDisable($day) {
+      if($day == date("Y-m-d"))
+          return True;
+      if( date("H", strtotime("now"))>=8 && date("Y-m-d", strtotime("+1 day")) == $day )
+          return True;
+      return False;
   }
 }
 
