@@ -38,7 +38,7 @@ class ReservationForm extends FormBase {
             );
           }
           if($last_from != $from) { // show h1 only one time
-            $form['buses'][$day . $from]['#prefix'] = '<h1>' . $from . '</h1>';
+            $form['buses'][$day . $from]['#prefix'] = '<h2>' . $from . '</h2>';
             $last_from = $from;
           }
           foreach ($buses as $date) {
@@ -85,21 +85,21 @@ class ReservationForm extends FormBase {
     $reserved_buses = $this->getReservedBuses();
     $min_capacity = \Drupal::config('bus_reservation.settings')->get('min_capacity');
     $user_choose = $form_state->getUserInput();
-    // dump($reserved_buses);
     // $form_state->disableRedirect();
-    foreach ($user_choose as $dates) {
+    foreach ($user_choose as $from => $dates) {
       if(is_array($dates)) foreach ($dates as $date) {
         if($date == "")
           continue;
         list($day, $time) = explode(" ", $date);
         if ($time != null && (!isset($reserved_buses[$date]) || $reserved_buses[$date]['disable'] == 0)) {
-          if($this->createBusNode($day . " " . $time)) {
+          $from = str_replace($day, "", $from);
+          if($this->createBusNode($date, $from)) {
             \Drupal::messenger()->addMessage(t("Вы успешно забронировали автобус:"));
             \Drupal::messenger()->addMessage($date);
             if(isset($reserved_buses[$date]) && $reserved_buses[$date]['capacity'] == $min_capacity-1) {
               // send email notification
               \Drupal::messenger()->addMessage('Автобус зарезервирован');
-              $this->sendNotification($date);
+              $this->sendNotification($from . " " . $date);
             }
           }
         }
@@ -130,10 +130,10 @@ class ReservationForm extends FormBase {
     return $r;
   }
 
-  protected function createBusNode($datetime) {
+  protected function createBusNode($datetime, $body = "") {
     $new_bus = \Drupal\node\Entity\Node::create(['type' => 'bus']);
     $new_bus->set('title', $datetime);
-    $new_bus->set('body', 'Bus reservation');
+    $new_bus->set('body', $body);
     $new_bus->enforceIsNew();
     $new_bus->save();
     return true;
