@@ -23,49 +23,59 @@ class ReservationForm extends FormBase {
 
   public function buildForm(array $form, FormStateInterface $form_state) {
     $reserved_buses = $this->getReservedBuses();
+    // dump($reserved_buses);
     $min_capacity = \Drupal::config('bus_reservation.settings')->get('min_capacity');
 
-    foreach ($this->getSchedule() as $day => $value) {
-      if( date("N", strtotime($day)) <= 5 ) { // skip holiday
-        $form[$day] = array(
-          '#type' => 'checkboxes',
-          '#title' => t(date("l", strtotime($day))) . " " . $day,
-          '#options' => $value['buses'],
-          '#disabled' => ($this->isReservationDisable($day) ? TRUE : FALSE) // disable current day
-        );
-        foreach ($value['buses'] as $time => $b) {
-          if (isset($reserved_buses[$day][$time])) {
-            $progress = "";
-            for ($i = 0; $i < $reserved_buses[$day][$time]['capacity']; $i++) {
-              $progress .= '<i class="fa-solid fa-user"></i> ';
-            }
-            for ($i = $reserved_buses[$day][$time]['capacity']; $i < $min_capacity; $i++) {
-              $progress .= '<i class="fa-regular fa-user"></i> ';
-            }
-            if ($reserved_buses[$day][$time]['capacity'] >= $min_capacity)
-              $progress .= '<i class="fa-solid fa-check"></i>';
-            $form[$day][$time] = ['#description' => $progress];
-
-            if ($reserved_buses[$day][$time]['disable'] == 1) { // current user already make reservation
-             // $form[$day]['#disabled'] = TRUE;
-              $form[$day]['#default_value'][] = $time;
-            }
-
-          } else {
-            $progress = "";
-            for ($i = 0; $i < $min_capacity; $i++) {
-              $progress .= '<i class="fa-regular fa-user"></i> ';
-            }
-            $form[$day][$time] = ['#description' => $progress];
+    foreach ($this->getSchedule() as $from => $days) {
+      $last_from = "";
+      foreach ($days as $day => $buses) {
+        if( date("N", strtotime($day)) <= 5 ) { // skip holiday
+          foreach ($buses as $time) {
+            $form['buses'][$day . $from] = array(
+              '#type' => 'checkboxes',
+              '#title' => t(date("l", strtotime($day))) . " " . $day,
+              '#disabled' => ($this->isReservationDisable($day) ? TRUE : FALSE) // disable current day
+            );
           }
-        }
+          if($last_from != $from) { // show h1 only one time
+            $form['buses'][$day . $from]['#prefix'] = '<h1>' . $from . '</h1>';
+            $last_from = $from;
+          }
+          foreach ($buses as $date) {
+            $form['buses'][$day.$from]['#options'][$date] = date("H:i", strtotime($date));
+            if (isset($reserved_buses[$date])) {
+              $progress = "";
+              for ($i = 0; $i < $reserved_buses[$date]['capacity']; $i++) {
+                $progress .= '<i class="fa-solid fa-user"></i> ';
+              }
+              for ($i = $reserved_buses[$date]['capacity']; $i < $min_capacity; $i++) {
+                $progress .= '<i class="fa-regular fa-user"></i> ';
+              }
+              if ($reserved_buses[$date]['capacity'] >= $min_capacity)
+                $progress .= '<i class="fa-solid fa-check"></i>';
+
+              if ($reserved_buses[$date]['disable'] == 1) { // current user already make reservation
+                // $form[$day]['#disabled'] = TRUE; // if want to disable current day
+                $form['buses'][$day.$from]['#default_value'][$date] = $date;
+              }
+            } else {
+              $progress = "";
+              for ($i = 0; $i < $min_capacity; $i++) {
+                $progress .= '<i class="fa-regular fa-user"></i> ';
+              }
+            }
+            $form['buses'][$day.$from][$date] = ['#description' => $progress];
+          }
+        } // end skip holiday
       }
     }
+    $form['#limit_validation_errors'] = array(array('map'));
     $form['actions']['#type'] = 'actions';
     $form['actions']['submit'] = array(
       '#type' => 'submit',
       '#value' => $this->t('Забронировать'),
       '#button_type' => 'primary',
+      '#limit_validation_errors' => array(),
     );
     $form['#attached']['library'][] = 'bus_reservation/bus-form-styling';
     return $form;
@@ -74,18 +84,22 @@ class ReservationForm extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $reserved_buses = $this->getReservedBuses();
     $min_capacity = \Drupal::config('bus_reservation.settings')->get('min_capacity');
-    foreach ($form_state->getValues() as $day => $buses) {
-      if($day == 'submit')
-        break;
-      foreach ($buses as $time => $reserved) {
-        if ($reserved != 0 && (!isset($reserved_buses[$day][$time]) || $reserved_buses[$day][$time]['disable'] == 0)) {
+    $user_choose = $form_state->getUserInput();
+    // dump($reserved_buses);
+    // $form_state->disableRedirect();
+    foreach ($user_choose as $dates) {
+      if(is_array($dates)) foreach ($dates as $date) {
+        if($date == "")
+          continue;
+        list($day, $time) = explode(" ", $date);
+        if ($time != null && (!isset($reserved_buses[$date]) || $reserved_buses[$date]['disable'] == 0)) {
           if($this->createBusNode($day . " " . $time)) {
             \Drupal::messenger()->addMessage(t("Вы успешно забронировали автобус:"));
-            \Drupal::messenger()->addMessage($day . ' ' . $reserved);
-            if(isset($reserved_buses[$day][$time]) && $reserved_buses[$day][$time]['capacity'] == $min_capacity-1) {
+            \Drupal::messenger()->addMessage($date);
+            if(isset($reserved_buses[$date]) && $reserved_buses[$date]['capacity'] == $min_capacity-1) {
               // send email notification
               \Drupal::messenger()->addMessage('Автобус зарезервирован');
-              $this->sendNotification($day . " " . $time);
+              $this->sendNotification($date);
             }
           }
         }
@@ -106,10 +120,13 @@ class ReservationForm extends FormBase {
     }
     for($i=0; $i<7; $i++) {
       $d = strtotime($i . " days");
-      $r[date('Y-m-d',$d)]['date'] = date("Y-m-d", $d);
+      // $r[date('Y-m-d',$d)]['date'] = date("Y-m-d", $d);
       foreach ($buses as $b)
-        $r[date('Y-m-d',$d)]['buses'][date("H:i", $b['departure'])] = $b['name'];
+        // $r[$b['name']][date('Y-m-d',$d)]['buses'][date("H:i", $b['departure'])] = $b['name'];
+        $r[$b['name']][date('Y-m-d',$d)][] = date('Y-m-d ',$d) . date("H:i", $b['departure']);
     }
+    // dump($r);
+    // \Drupal::messenger()->addMessage($r);
     return $r;
   }
 
@@ -131,16 +148,16 @@ class ReservationForm extends FormBase {
     $uid = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id())->get('uid')->value;
     $buses = array(array());
     foreach ($nodes as $n) {
-      $daytime = explode(" ", $n->getTitle());
-      if(isset($buses[$daytime[0]][$daytime[1]]))
-        $buses[$daytime[0]][$daytime[1]]['capacity']++;
+      $date = $n->getTitle();
+      if(isset($buses[$date]))
+        $buses[$date]['capacity']++;
       else {
-        $buses[$daytime[0]][$daytime[1]]['capacity'] = 1;
-        $buses[$daytime[0]][$daytime[1]]['disable'] = 0;
+        $buses[$date]['capacity'] = 1;
+        $buses[$date]['disable'] = 0;
       }
-      $buses[$daytime[0]][$daytime[1]]['uid'] = $n->getOwnerId();
+      $buses[$date]['uid'] = $n->getOwnerId();
       if($uid == $n->getOwnerId())
-        $buses[$daytime[0]][$daytime[1]]['disable'] = 1;
+        $buses[$date]['disable'] = 1;
     }
     return $buses;
   }
@@ -174,6 +191,15 @@ class ReservationForm extends FormBase {
       if( date("H", strtotime("now"))>=8 && date("Y-m-d", strtotime("+1 day")) == $day )
           return True;
       return False;
+  }
+  function bus_reservation_form_validate($element, &$form_state, $form) {
+
+  }
+  /**
+   * {@inheritdoc}
+   */
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+
   }
 }
 
