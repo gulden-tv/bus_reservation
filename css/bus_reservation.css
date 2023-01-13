@@ -6,3 +6,4 @@
     font-family: 'Font Awesome 6 Free';
 }
 .bus-reservation-form *:disabled { opacity: 0.5; }
+.bus-reservation-form h2 {font-size: 25px; margin: 15px 0 0 0;}
