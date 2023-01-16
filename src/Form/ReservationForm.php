@@ -22,6 +22,7 @@ class ReservationForm extends FormBase {
   }
 
   public function buildForm(array $form, FormStateInterface $form_state) {
+    $months = array( 1 => 'января' , 'февраля' , 'марта' , 'апреля' , 'мая' , 'июня' , 'июля' , 'августа' , 'сентября' , 'октября' , 'ноября' , 'декабря' );
     $reserved_buses = $this->getReservedBuses();
     // dump($reserved_buses);
     $min_capacity = \Drupal::config('bus_reservation.settings')->get('min_capacity');
@@ -33,7 +34,7 @@ class ReservationForm extends FormBase {
           foreach ($buses as $time) {
             $form['buses'][$day . $from] = array(
               '#type' => 'checkboxes',
-              '#title' => t(date("l", strtotime($day))) . " " . $day,
+              '#title' => t(date("l", strtotime($day))) . " " . date("j", strtotime($day)) . " " . $months[date("n", strtotime($day))],
               '#disabled' => ($this->isReservationDisable($day) ? TRUE : FALSE) // disable current day
             );
           }

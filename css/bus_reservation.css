@@ -7,3 +7,74 @@
 }
 .bus-reservation-form *:disabled { opacity: 0.5; }
 .bus-reservation-form h2 {font-size: 25px; margin: 15px 0 0 0;}
+.bus-reservation-form fieldset {
+    border: 0;
+}
+.bus-reservation-form fieldset {
+    padding: 0px 5px 5px 5px;
+    --mdb-card-spacer-y: 1.5rem;
+    --mdb-card-spacer-x: 1.5rem;
+    --mdb-card-title-spacer-y: 0.5rem;
+    --mdb-card-border-width: 1px;
+    --mdb-card-border-color: var(--mdb-border-color-translucent);
+    --mdb-card-border-radius: 0.5rem;
+    --mdb-card-box-shadow: 0 2px 15px -3px rgba(0,0,0,0.07),0 10px 20px -2px rgba(0,0,0,0.04);
+    --mdb-card-inner-border-radius: calc(0.5rem - 1px);
+    --mdb-card-cap-padding-y: 0.75rem;
+    --mdb-card-cap-padding-x: 1.5rem;
+    --mdb-card-cap-bg: hsla(0,0%,100%,0);
+    --mdb-card-bg: #fff;
+    --mdb-card-img-overlay-padding: 1.5rem;
+    --mdb-card-group-margin: 0.75rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    height: var(--mdb-card-height);
+    word-wrap: break-word;
+    background-color: var(--mdb-card-bg);
+    background-clip: border-box;
+    border: var(--mdb-card-border-width) solid var(--mdb-card-border-color);
+    border-radius: var(--mdb-card-border-radius);
+    box-shadow: var(--mdb-card-box-shadow);
+}
+.card-header:first-child {
+    border-radius: var(--mdb-card-inner-border-radius) var(--mdb-card-inner-border-radius) 0 0;
+}
+
+.card-header {
+    --mdb-card-header-border-width: 2px;
+    --mdb-card-header-border-color: #f5f5f5;
+    border-bottom: var(--mdb-card-header-border-width) solid var(--mdb-card-header-border-color);
+}
+.card-header {
+    padding: var(--mdb-card-cap-padding-y) var(--mdb-card-cap-padding-x);
+    margin-bottom: 0;
+    color: var(--mdb-card-cap-color);
+    background-color: var(--mdb-card-cap-bg);
+    border-bottom: var(--mdb-card-border-width) solid var(--mdb-card-border-color);
+}
+.card-footer:last-child {
+    border-radius: 0 0 var(--mdb-card-inner-border-radius) var(--mdb-card-inner-border-radius);
+}
+
+.card-footer {
+    --mdb-card-footer-border-color: #f5f5f5;
+    --mdb-card-footer-border-width: 2px;
+    border-top: var(--mdb-card-footer-border-width) solid var(--mdb-card-footer-border-color);
+}
+.text-muted {
+    --mdb-text-opacity: 1;
+    color: #757575!important;
+}
+.card-footer {
+    padding: var(--mdb-card-cap-padding-y) var(--mdb-card-cap-padding-x);
+    color: var(--mdb-card-cap-color);
+    background-color: var(--mdb-card-cap-bg);
+    border-top: var(--mdb-card-border-width) solid var(--mdb-card-border-color);
+}
+.bus-reservation-form fieldset .fieldset-wrapper {
+    flex: 1 1 auto;
+    padding: var(--mdb-card-spacer-y) var(--mdb-card-spacer-x);
+    color: var(--mdb-card-color);
+}
