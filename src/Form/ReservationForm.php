@@ -190,7 +190,9 @@ class ReservationForm extends FormBase {
       if($day == date("Y-m-d"))
           return True;
       if( date("H", strtotime("now"))>=8 && date("Y-m-d", strtotime("+1 day")) == $day )
-          return True;
+          return True; // блокируем следующий день если уже позже 8 утра
+      if (date("w", strtotime($day)) == 1 && ( ( date("wH", strtotime("now")) >= 508 ) || date("w", strtotime("now")) == 0) )
+          return True; // блокируем понедельник если сегодня уже пятница и позже 8 утра
       return False;
   }
   function bus_reservation_form_validate($element, &$form_state, $form) {
